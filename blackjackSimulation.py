@@ -5,7 +5,6 @@ import multiprocessing
 def newDeck():  # creates a new deck for us
     return list(range(2, 14)) * 4
 
-
 def playBlackJack(batchSize):
     playerWins = 0
     dealerWins = 0
@@ -13,30 +12,47 @@ def playBlackJack(batchSize):
     for i in range(batchSize):
         deck = newDeck()
         shuffle(deck)
-        while len(deck) >= 13:  # quarter of the deck
+        while len(deck) >= 13:  # plays until we only have quarter of the deck
             player = 0
             dealer = 0
-            while sorted(deck)[len(deck) // 2] < 21 - player:
+            playerAces = 0
+            while sorted(deck)[len(deck) // 2] + player < 21:  # there are more cards, than wouldn't get us beyond our limit, than card, that would
                 card = deck[-1]
                 player += card
+                if card == 11:  # player got an ace
+                    playerAces += 1
                 del deck[-1]
-            if player > 21:
-                dealerWins += 1
-                continue
-            while dealer <= 16:
+            if player > 21:  # player busted
+                if playerAces > 0:  # has aces to transform
+                    player -= 10  # transforming an ace to 1
+                    playerAces -= 1
+                    while sorted(deck)[len(deck) // 2] + player < 21 and playerAces > 0: # there are more cards, than wouldn't get us beyond our limit, than card, that would, and player can still trasform their aces
+                        card = deck[-1]
+                        player += card
+                        if card == 11:
+                            playerAces += 1
+                        del deck[-1]
+                if player > 21:  # still over
+                    dealerWins += 1
+                    continue
+            while dealer <= 16:  # must have >= 16 on cards at the end
                 card = deck[-1]
                 dealer += card
                 del deck[-1]
+            #dealer busted
             if dealer > 21:
                 playerWins += 1
                 continue
+            #player won
             if player > dealer:
                 playerWins += 1
+            #dealer won
             elif dealer > player:
                 dealerWins += 1
+            #they drew
             else:
                 Draws += 1
-    queue.put((playerWins, dealerWins, Draws))
+    queue.put((playerWins, dealerWins, Draws))  # writes out our results
 
 
 def multiprocessingStarter(cores, batchSize):
@@ -49,6 +65,7 @@ def multiprocessingStarter(cores, batchSize):
         processes.append(process)
     for process in processes:
         process.join()
+    #returns our results
     for core in range(cores):
         result = queue.get()
         playerWins += result[0]
@@ -58,7 +75,7 @@ def multiprocessingStarter(cores, batchSize):
 
 queue = multiprocessing.Queue()
 cores = multiprocessing.cpu_count()
-simulations = 999_999
+simulations = 1_000_000
 playerWins = 0
 dealerWins = 0
 draws = 0
