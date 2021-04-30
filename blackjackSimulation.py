@@ -12,7 +12,7 @@ def playBlackJack(batchSize, limit):
     for i in range(batchSize):
         deck = newDeck()
         shuffle(deck)
-        while len(deck) >= 13:  # plays until we only have quarter of the deck
+        while len(deck) >= 13:  # plays until we only have a quarter of the deck
             player = 0
             dealer = 0
             playerAces = 0
